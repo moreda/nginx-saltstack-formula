@@ -1,13 +1,67 @@
 nginx:
+  # Overrides map.jinja
+  #lookup:
+  #  version: xxx
+
+  # The files_switch key serves as a selector for alternative directories under
+  # the formula files directory. Under the files directory could exist several
+  # subdirectories named on the value of certain grains. By default the selector
+  # is the minion id, but it could be a list of them.
+  files_switch:
+    - id
+    - os_family
+
+  # User and group for the main nginx process
   user: www-data
   group: www-data
+
   worker_processes: 4
   worker_connections: 512
   keepalive_timeout: 2
+
+  # Configuration of sites
   sites:
-    www.example1.com:
+
+    www.example.com:
       # State could be enabled (=default) | disabled | absent
       state: enabled
+
+      # Name of the file with the conf. Default is <site name>.conf
+      conf_filename: www.example.com.conf
+
+      # Jinja template for this site. Should be in
+      # files/default/etc/nginx/sites-available/<template>.jinja
+      template: minimal
+
+      # The following key:value pairs are used in the provided default template
+      listen: '*:80'
+
+      # Creates root and log_dir directories with the specified
+      # user and group. It's your responsibility to ensure that user and group
+      # exists
+      create_dirs: True
+      user: bob
+      group: www-data
+
+      # Other common parameters
+      server_name: bobs.website.com
+      root: /home/bob/public_html
+      log_dir: /home/bob/log
+      logrotate_files:
+        - /var/www/bob/log/www.example.com_error.log
+        - /var/www/bob/log/www.example.com_access.log
+
+      fastcgi_pass: unix:/var/run/php5-fpm_example_with_socket.socket
+
+      # Extra configuration to be added to the VirtualHost environment
+      extra_conf: |
+        # This is an example of snippet added to the conf from pillar data
+
+    # This is an example for a simple SSL proxy
+    www.proxyssl.com:
+      # State could be enabled (=default) | disabled | absent
+      state: enabled
+
       # Jinja template for this site. Should be in
       # files/default/etc/ngnix/sites-available/<template>.jinja
       template: ssl_proxy
@@ -24,21 +78,7 @@ nginx:
       # Extra configuration to be added to the VirtualHost environment
       extra_conf: |
         # This is an example of snippet added to the conf from pillar data
-    bobs.website.com:
-      template: minimal
-      server_name: bobs.website.com
-      listen: '*:80'
-      root: /home/bob/public_html
-      log_dir: /home/bob/log
-      # Creates root and log_dir directories with the specified user/group
-      # It's your responsibility to ensure that user/group exists
-      create_dirs: True
-      user: bob
-      group: www-data
-      fastcgi_pass: unix:/var/run/php5-fpm_example_with_socket.socket
-      # Extra configuration to be added to the VirtualHost environment
-      extra_conf: |
-        # This is an example of snippet added to the conf from pillar data
-    default:
+
+   default:
       state: disabled
       conf_filename: default.conf

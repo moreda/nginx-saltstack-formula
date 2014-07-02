@@ -79,6 +79,7 @@ include:
 {{ site_attr['root'] }}:
   file:
     - directory
+    - makedirs: true
     - user: {{ site_attr['user'] | d('www-data') }}
     - group: {{ site_attr['group'] | d('www-data') }}
     - mode: 2755
@@ -94,6 +95,7 @@ include:
 {{ site_attr['log_dir'] }}:
   file:
     - directory
+    - makedirs: true
     - user: {{ site_attr['user'] | d('www-data') }}
     - group: {{ site_attr['group'] | d('www-data') }}
     - mode: 775
